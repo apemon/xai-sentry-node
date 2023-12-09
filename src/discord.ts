@@ -109,9 +109,10 @@ export const notifyPrevChallenge = async (
     name: 'total eligible',
     value: `${challenge.numberOfEligibleClaimers}`,  
   })
+  const totalRewardPerClaimer = ethers.BigNumber.from(challenge.rewardAmountForClaimers).div(challenge.numberOfEligibleClaimers)
   fields.push({
     name: 'reward per claimer',
-    value: `${ethers.utils.formatEther(challenge.rewardAmountForClaimers)}/${challenge.numberOfEligibleClaimers} esXAI`,  
+    value: `${ethers.utils.formatEther(totalRewardPerClaimer)} esXAI`,  
   })
   const embed = {
     type: 'rich',
