@@ -93,12 +93,17 @@ const getNewChallenge = async () => {
   if (challengeCounter < currentChallengeCounter) {
     challengeCounter = currentChallengeCounter
     if (currentChallenge) {
-      prevChallenge = currentChallenge
+      prevChallenge = await getChallenge(challengeCounter - 2)
       await notifyPrevChallenge(challengeCounter - 2, prevChallenge)
       // claim reward (if any)
     }
-    
-    const {
+    currentChallenge = await getChallenge(challengeCounter - 1)
+    await checkEligible()
+  }
+}
+
+const getChallenge = async(chllengeNumber: number): Promise<Challenge> => {
+  const {
       openForSubmissions,
       expiredForRewarding,
       assertionId,
@@ -114,7 +119,7 @@ const getNewChallenge = async () => {
       numberOfEligibleClaimers,
       amountClaimedByClaimers
     } = await referee.getChallenge(challengeCounter - 1)
-    currentChallenge = {
+    const challenge = {
       openForSubmissions,
       expiredForRewarding,
       assertionId,
@@ -130,8 +135,7 @@ const getNewChallenge = async () => {
       numberOfEligibleClaimers,
       amountClaimedByClaimers
     }
-    await checkEligible()
-  }
+    return challenge
 }
 
 const checkEligible = async () => {
