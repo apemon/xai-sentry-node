@@ -2,6 +2,14 @@ import { Challenge } from './types'
 import {ethers} from 'ethers'
 import axios from 'axios'
 
+export const notifyMessage = async (message: string) => {
+  const discordUrl = process.env.DISCORD_URL
+  await axios.post(discordUrl, {
+    content: message
+  })
+
+}
+
 export const notifyNewChallenge = async (
   challengeNumber: number,
   challenge: Challenge,

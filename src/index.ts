@@ -3,7 +3,7 @@ import * as LicenseAbi from './abi/license.json'
 import * as RefereeAbi from './abi/referee.json'
 import * as Multicall2Abi from './abi/Multicall2.json'
 import { Challenge } from './types'
-import {notifyNewChallenge, notifySubmission} from './discord'
+import {notifyMessage, notifyNewChallenge, notifySubmission} from './discord'
 
 require('dotenv').config();
 
@@ -17,13 +17,12 @@ const referee = new ethers.Contract(REFEREE_ADDRESS, RefereeAbi, provider);
 const license = new ethers.Contract(LICENSE_ADDRESS, LicenseAbi, provider);
 const multicall = new ethers.Contract(MULTICALL_ADDRESS, Multicall2Abi, provider);
 
-const discordUrl = process.env.DISCORD_URL
-
 // global var
 const ownerNftList: Record<string, number[]> = {}
 const nftToOwner: Record<number, string> = {}
 let challengeCounter = 0
 let currentChallenge: Challenge
+let prevChallenge: Challenge
 
 const getOwnerList = async (operatorAddress: string) => {
   const ownerCount: ethers.BigNumber = await referee.getOwnerCountForOperator(operatorAddress)
@@ -84,6 +83,7 @@ const getNewChallenge = async () => {
   const currentChallengeCounter = (await referee.challengeCounter()).toNumber()
   if (challengeCounter < currentChallengeCounter) {
     challengeCounter = currentChallengeCounter
+    prevChallenge = currentChallenge
     const {
       openForSubmissions,
       expiredForRewarding,
@@ -173,15 +173,15 @@ const checkEligible = async () => {
   }))
 }
 
-const main = async () => {  
+const main = async () => { 
   // load operator -> owner
   const operatorAddress = await wallet.getAddress()
-  const ownerList = await getOwnerList(operatorAddress)
+  // const ownerList = await getOwnerList(operatorAddress)
   // load each owner nft
-  await getOwnerNftList(ownerList)
+  // await getOwnerNftList(ownerList)
   // load current challenge -> if got new, notify the old one
-  await getNewChallenge()
-  await notifySubmission(12, 21000, '0x0xxx')
+  // await getNewChallenge()
+  // await notifySubmission(12, 21000, '0x0xxx')
   // check eligible -> send assert -> notify
   // await checkEligible()
   // check reward
