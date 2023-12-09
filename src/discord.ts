@@ -2,6 +2,26 @@ import { Challenge } from './types'
 import {ethers} from 'ethers'
 import axios from 'axios'
 
+export const notifyRemoveOwner = async (owner: string) => {
+  const discordUrl = process.env.DISCORD_URL
+  const fields = []
+  fields.push({
+    name: 'owner address',
+    value: `${owner}`,  
+  })
+
+  const embed = {
+    type: 'rich',
+    title: `Owner Removed`,
+    color: 16711680,
+    fields
+  }
+
+  await axios.post(discordUrl, {
+    embeds: [embed]
+  })
+}
+
 export const notifyNewOwner = async (owner: string, tokenIds: number[]) => {
   const discordUrl = process.env.DISCORD_URL
   const fields = []
@@ -13,7 +33,7 @@ export const notifyNewOwner = async (owner: string, tokenIds: number[]) => {
     name: `token id`,
     value: `${tokenIds.join(', ')}`
   })
-  
+
   const embed = {
     type: 'rich',
     title: `New Owner Register`,
