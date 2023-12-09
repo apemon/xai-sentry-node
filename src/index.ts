@@ -3,7 +3,7 @@ import * as LicenseAbi from './abi/license.json'
 import * as RefereeAbi from './abi/referee.json'
 import * as Multicall2Abi from './abi/Multicall2.json'
 import { Challenge } from './types'
-import {notifyNewChallenge} from './discord'
+import {notifyNewChallenge, notifySubmission} from './discord'
 
 require('dotenv').config();
 
@@ -166,7 +166,7 @@ const checkEligible = async () => {
         challengeCounter - 1,
         currentChallenge.assertionStateRootOrConfirmData,
       )
-      summisionToEligible[tokenId] = response.hash
+      await notifySubmission(challengeCounter - 1, tokenId, response.hash)
     } catch (err) {
       console.log(err)
     }
@@ -181,6 +181,7 @@ const main = async () => {
   await getOwnerNftList(ownerList)
   // load current challenge -> if got new, notify the old one
   await getNewChallenge()
+  await notifySubmission(12, 21000, '0x0xxx')
   // check eligible -> send assert -> notify
   // await checkEligible()
   // check reward

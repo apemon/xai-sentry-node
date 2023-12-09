@@ -38,7 +38,38 @@ export const notifyNewChallenge = async (
     fields
   }
   await axios.post(discordUrl, {
-    content: 'new Challenge',
+    embeds: [embed]
+  })
+}
+
+export const notifySubmission = async (
+  challengeNumber: number,
+  tokenId: number,
+  txhash: string
+) => {
+  const discordUrl = process.env.DISCORD_URL
+  const explorerUrl = `https://arbiscan.io/tx/${txhash}`
+  const fields = []
+  fields.push({
+    name: 'token id',
+    value: `${tokenId}`,  
+  })
+  fields.push({
+    name: 'txhash',
+    value: `${txhash}`,  
+  })
+  fields.push({
+    name: 'explorer url',
+    value: explorerUrl,  
+  })
+  const embed = {
+    type: 'rich',
+    title: `New Submission: ${challengeNumber}`,
+    color: 6225664,
+    fields,
+    url: explorerUrl
+  }
+  await axios.post(discordUrl, {
     embeds: [embed]
   })
 }
