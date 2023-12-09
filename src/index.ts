@@ -4,7 +4,7 @@ import * as RefereeAbi from './abi/referee.json'
 import * as Multicall2Abi from './abi/Multicall2.json'
 import * as cron from 'node-cron'
 import { Challenge } from './types'
-import {notifyMessage, notifyNewChallenge, notifySubmission} from './discord'
+import {notifyMessage, notifyNewChallenge, notifyNewOwner, notifyPrevChallenge, notifySubmission} from './discord'
 
 require('dotenv').config();
 
@@ -76,6 +76,7 @@ const getOwnerNftList = async (ownerList: string[]) => {
         }
         ownerNftList[owner].push(tokenId)
       }
+      await notifyNewOwner(owner, ownerNftList[owner])
     }
   }
 }
@@ -84,7 +85,11 @@ const getNewChallenge = async () => {
   const currentChallengeCounter = (await referee.challengeCounter()).toNumber()
   if (challengeCounter < currentChallengeCounter) {
     challengeCounter = currentChallengeCounter
-    prevChallenge = currentChallenge
+    if (currentChallenge) {
+      prevChallenge = currentChallenge
+      await notifyPrevChallenge(challengeCounter - 2, prevChallenge)
+    }
+    
     const {
       openForSubmissions,
       expiredForRewarding,
@@ -177,7 +182,7 @@ const main = async () => {
   // load operator -> owner
   const operatorAddress = await wallet.getAddress()
   console.log('start operator...')
-  cron.schedule('* * * * *', async () => {
+  cron.schedule('*/15 * * * * *', async () => {
     try {
       const ownerList = await getOwnerList(operatorAddress)
       // load each owner nft
@@ -189,9 +194,12 @@ const main = async () => {
       // check reward
       // save current progress
     } catch (err) {
-      await notifyMessage(err)
+      console.log(err)
+      await notifyMessage(err.toString())
     }
     
   })
   
 }
+
+main()

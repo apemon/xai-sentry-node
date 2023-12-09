@@ -2,6 +2,31 @@ import { Challenge } from './types'
 import {ethers} from 'ethers'
 import axios from 'axios'
 
+export const notifyNewOwner = async (owner: string, tokenIds: number[]) => {
+  const discordUrl = process.env.DISCORD_URL
+  const fields = []
+  fields.push({
+    name: 'owner address',
+    value: `${owner}`,  
+  })
+  fields.push({
+    name: `token id`,
+    value: `${tokenIds.join(', ')}`
+  })
+  
+  const embed = {
+    type: 'rich',
+    title: `New Owner Register`,
+    color: 16761856,
+    fields
+  }
+
+  await axios.post(discordUrl, {
+    embeds: [embed]
+  })
+}
+
+
 export const notifyMessage = async (message: string) => {
   const discordUrl = process.env.DISCORD_URL
   await axios.post(discordUrl, {
@@ -43,6 +68,35 @@ export const notifyNewChallenge = async (
     type: 'rich',
     title: `New challenge ${challengeNumber}`,
     color: 65535,
+    fields
+  }
+  await axios.post(discordUrl, {
+    embeds: [embed]
+  })
+}
+
+export const notifyPrevChallenge = async (
+  challengeNumber: number,
+  challenge: Challenge
+) => {
+  const discordUrl = process.env.DISCORD_URL
+  const fields = []
+  fields.push({
+    name: '💰 total reward',
+    value: `${ethers.utils.formatEther(challenge.rewardAmountForClaimers)} esXAI`,  
+  })
+  fields.push({
+    name: 'total eligible',
+    value: `${challenge.numberOfEligibleClaimers}`,  
+  })
+  fields.push({
+    name: 'reward per claimer',
+    value: `${ethers.utils.formatEther(challenge.rewardAmountForClaimers)}/${challenge.numberOfEligibleClaimers} esXAI`,  
+  })
+  const embed = {
+    type: 'rich',
+    title: `Prev challenge ${challengeNumber}`,
+    color: 14221567,
     fields
   }
   await axios.post(discordUrl, {
