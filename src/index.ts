@@ -2,6 +2,7 @@ import { Wallet, ethers } from 'ethers';
 import * as LicenseAbi from './abi/license.json'
 import * as RefereeAbi from './abi/referee.json'
 import * as Multicall2Abi from './abi/Multicall2.json'
+import * as cron from 'node-cron'
 import { Challenge } from './types'
 import {notifyMessage, notifyNewChallenge, notifySubmission} from './discord'
 
@@ -141,7 +142,6 @@ const checkEligible = async () => {
   const {returnData } = await multicall.callStatic.tryBlockAndAggregate(true, calldatas)
   const eligibleList: Record<number, boolean> = {}
   const eligibles: number[] = []
-  const summisionToEligible: Record<number, string> = {}
   for (let i=0;i<tokenIds.length;i++) {
     const tokenId = Number(tokenIds[i])
     const eligible = ethers.utils.defaultAbiCoder.decode(["bool"], returnData[i][1])[0]
@@ -176,16 +176,22 @@ const checkEligible = async () => {
 const main = async () => { 
   // load operator -> owner
   const operatorAddress = await wallet.getAddress()
-  // const ownerList = await getOwnerList(operatorAddress)
-  // load each owner nft
-  // await getOwnerNftList(ownerList)
-  // load current challenge -> if got new, notify the old one
-  // await getNewChallenge()
-  // await notifySubmission(12, 21000, '0x0xxx')
-  // check eligible -> send assert -> notify
-  // await checkEligible()
-  // check reward
-  // save current progress
+  console.log('start operator...')
+  cron.schedule('* * * * *', async () => {
+    try {
+      const ownerList = await getOwnerList(operatorAddress)
+      // load each owner nft
+      await getOwnerNftList(ownerList)
+      // load current challenge -> if got new, notify the old one
+      await getNewChallenge()
+      // await notifySubmission(12, 21000, '0x0xxx')
+      // check eligible -> send assert -> notify
+      // check reward
+      // save current progress
+    } catch (err) {
+      await notifyMessage(err)
+    }
+    
+  })
+  
 }
-
-main()
