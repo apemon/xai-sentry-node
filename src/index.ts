@@ -186,6 +186,7 @@ const checkEligible = async () => {
       await notifySubmission(challengeCounter - 1, tokenId, response.hash)
     } catch (err) {
       console.log(err)
+      await notifyMessage(err.toString())
     }
   }))
 }
