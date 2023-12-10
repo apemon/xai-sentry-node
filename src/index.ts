@@ -196,6 +196,7 @@ const main = async () => {
   console.log('start operator...')
   cron.schedule('*/15 * * * *', async () => {
     try {
+      console.log(`running at ${new Date().toISOString()}`)
       const ownerList = await getOwnerList(operatorAddress)
       // load each owner nft
       await getOwnerNftList(ownerList)
