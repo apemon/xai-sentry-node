@@ -25,6 +25,8 @@ let challengeCounter = 0
 let currentChallenge: Challenge
 let prevChallenge: Challenge
 
+const delay = (ms:number) => new Promise(resolve => setTimeout(resolve, ms))
+
 const getOwnerList = async (operatorAddress: string) => {
   const ownerCount: ethers.BigNumber = await referee.getOwnerCountForOperator(operatorAddress)
   // const refereeInterface = new ethers.utils.Interface(RefereeAbi)
@@ -92,10 +94,11 @@ const getNewChallenge = async () => {
   const currentChallengeCounter = (await referee.challengeCounter()).toNumber()
   if (challengeCounter < currentChallengeCounter) {
     challengeCounter = currentChallengeCounter
-    prevChallenge = await getChallenge(challengeCounter - 2)
-    await notifyPrevChallenge(challengeCounter - 2, prevChallenge)
     currentChallenge = await getChallenge(challengeCounter - 1)
     await checkEligible()
+    await delay(2000)
+    prevChallenge = await getChallenge(challengeCounter - 2)
+    await notifyPrevChallenge(challengeCounter - 2, prevChallenge)
   }
 }
 
