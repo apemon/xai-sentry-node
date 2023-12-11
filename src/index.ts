@@ -92,11 +92,8 @@ const getNewChallenge = async () => {
   const currentChallengeCounter = (await referee.challengeCounter()).toNumber()
   if (challengeCounter < currentChallengeCounter) {
     challengeCounter = currentChallengeCounter
-    if (currentChallenge) {
-      prevChallenge = await getChallenge(challengeCounter - 2)
-      await notifyPrevChallenge(challengeCounter - 2, prevChallenge)
-      // claim reward (if any)
-    }
+    prevChallenge = await getChallenge(challengeCounter - 2)
+    await notifyPrevChallenge(challengeCounter - 2, prevChallenge)
     currentChallenge = await getChallenge(challengeCounter - 1)
     await checkEligible()
   }
