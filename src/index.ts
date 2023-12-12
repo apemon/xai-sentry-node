@@ -97,9 +97,7 @@ const getNewChallenge = async () => {
     currentChallenge = await getChallenge(challengeCounter - 1)
     await checkEligible()
     await delay(2000)
-    console.log(challengeCounter - 2)
     prevChallenge = await getChallenge(challengeCounter - 2)
-    console.log(prevChallenge)
     await notifyPrevChallenge(challengeCounter - 2, prevChallenge)
   }
 }
@@ -120,7 +118,7 @@ const getChallenge = async(chllengeNumber: number): Promise<Challenge> => {
       amountForGasSubsidy,
       numberOfEligibleClaimers,
       amountClaimedByClaimers
-    } = await referee.getChallenge(challengeCounter - 1)
+    } = await referee.getChallenge(chllengeNumber)
     const challenge = {
       openForSubmissions,
       expiredForRewarding,
