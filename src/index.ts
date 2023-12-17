@@ -21,7 +21,7 @@ const multicall = new ethers.Contract(MULTICALL_ADDRESS, Multicall2Abi, provider
 // global var
 const ownerNftList: Record<string, number[]> = {}
 const nftToOwner: Record<number, string> = {}
-const pendingReward: any[] = []
+let pendingReward: any[] = []
 let challengeCounter = 0
 let currentChallenge: Challenge
 let prevChallenge: Challenge
@@ -168,6 +168,7 @@ const checkEligible = async () => {
         await notifyMessage(err.toString())
       }
     }))
+    pendingReward = []
   }
   if (!currentChallenge.openForSubmissions) {
     return
