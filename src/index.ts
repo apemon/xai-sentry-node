@@ -161,14 +161,20 @@ const checkEligible = async () => {
   // check for reward
   if (pendingReward.length > 0) {
     await Promise.all(pendingReward.map(async (reward) => {
-      try {
-        await claimReward(reward?.tokenId, reward?.challengeNumber)
-      } catch (err) {
-        console.log(err)
-        await notifyMessage(err.toString())
+      if (reward?.challengeNumber == challengeCounter - 2) {
+        try {
+          await claimReward(reward?.tokenId, reward?.challengeNumber)
+          reward.claimed = true
+        } catch (err) {
+          console.log(err)
+          await notifyMessage(err.toString())
+        }
       }
     }))
-    pendingReward = []
+    // mark as claimed
+    pendingReward = pendingReward.filter((reward) => {
+      return reward?.claimed == false
+    })
   }
   if (!currentChallenge.openForSubmissions) {
     return
@@ -215,7 +221,8 @@ const checkEligible = async () => {
       await notifySubmission(challengeCounter - 1, tokenId, response.hash)
       pendingReward.push({
         tokenId,
-        challengeNumber: challengeCounter - 1
+        challengeNumber: challengeCounter - 1,
+        claimed: false
       })
     } catch (err) {
       console.log(err)
