@@ -4,7 +4,7 @@ import * as RefereeAbi from './abi/referee.json'
 import * as Multicall2Abi from './abi/Multicall2.json'
 import * as cron from 'node-cron'
 import { Challenge } from './types'
-import {notifyMessage, notifyNewChallenge, notifyNewOwner, notifyPrevChallenge, notifyRemoveOwner, notifySubmission} from './discord'
+import {notifyClaimReward, notifyMessage, notifyNewChallenge, notifyNewOwner, notifyPrevChallenge, notifyRemoveOwner, notifySubmission} from './discord'
 
 require('dotenv').config();
 
@@ -21,6 +21,7 @@ const multicall = new ethers.Contract(MULTICALL_ADDRESS, Multicall2Abi, provider
 // global var
 const ownerNftList: Record<string, number[]> = {}
 const nftToOwner: Record<number, string> = {}
+const pendingReward: any[] = []
 let challengeCounter = 0
 let currentChallenge: Challenge
 let prevChallenge: Challenge
@@ -138,9 +139,36 @@ const getChallenge = async(chllengeNumber: number): Promise<Challenge> => {
     return challenge
 }
 
+const claimReward = async (
+  tokenId: number,
+  challengeNumber: number
+) => {
+  try {
+    const response = await referee.connect(wallet).claimReward(
+      tokenId,
+      challengeNumber
+    )
+    await notifyClaimReward(challengeNumber, tokenId, response.hash)
+  } catch (err) {
+    console.log(err)
+    await notifyMessage(err.toString())
+  }
+}
+
 const checkEligible = async () => {
   const calldatas = []
   const tokenIds = Object.keys(nftToOwner)
+  // check for reward
+  if (pendingReward.length > 0) {
+    await Promise.all(pendingReward.map(async (reward) => {
+      try {
+        await claimReward(reward?.tokenId, reward?.challengeNumber)
+      } catch (err) {
+        console.log(err)
+        await notifyMessage(err.toString())
+      }
+    }))
+  }
   if (!currentChallenge.openForSubmissions) {
     return
   }
@@ -176,7 +204,7 @@ const checkEligible = async () => {
   
   await notifyNewChallenge(challengeCounter -1, currentChallenge, eligibleToOwner)
   // submit assertion
-  await Promise.all(eligibles.map(async (tokenId) => {
+  await Promise.all(eligibles.map(async (tokenId: number) => {
     try {
       const response = await referee.connect(wallet).submitAssertionToChallenge(
         tokenId,
@@ -184,6 +212,10 @@ const checkEligible = async () => {
         currentChallenge.assertionStateRootOrConfirmData,
       )
       await notifySubmission(challengeCounter - 1, tokenId, response.hash)
+      pendingReward.push({
+        tokenId,
+        challengeNumber: challengeCounter - 1
+      })
     } catch (err) {
       console.log(err)
       await notifyMessage(err.toString())
