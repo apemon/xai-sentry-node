@@ -164,6 +164,7 @@ const checkEligible = async () => {
       if (reward?.challengeNumber == challengeCounter - 2) {
         try {
           await claimReward(reward?.tokenId, reward?.challengeNumber)
+          await delay(2000)
           reward.claimed = true
         } catch (err) {
           console.log(err)
@@ -211,8 +212,9 @@ const checkEligible = async () => {
   
   await notifyNewChallenge(challengeCounter -1, currentChallenge, eligibleToOwner)
   // submit assertion
-  await Promise.all(eligibles.map(async (tokenId: number) => {
+  while(eligibles.length > 0) {
     try {
+      const tokenId = eligibles.shift()
       const response = await referee.connect(wallet).submitAssertionToChallenge(
         tokenId,
         challengeCounter - 1,
@@ -224,11 +226,30 @@ const checkEligible = async () => {
         challengeNumber: challengeCounter - 1,
         claimed: false
       })
+      await delay(2000)
     } catch (err) {
       console.log(err)
       await notifyMessage(err.toString())
     }
-  }))
+  }
+  // await Promise.all(eligibles.map(async (tokenId: number) => {
+  //   try {
+  //     const response = await referee.connect(wallet).submitAssertionToChallenge(
+  //       tokenId,
+  //       challengeCounter - 1,
+  //       currentChallenge.assertionStateRootOrConfirmData,
+  //     )
+  //     await notifySubmission(challengeCounter - 1, tokenId, response.hash)
+  //     pendingReward.push({
+  //       tokenId,
+  //       challengeNumber: challengeCounter - 1,
+  //       claimed: false
+  //     })
+  //   } catch (err) {
+  //     console.log(err)
+  //     await notifyMessage(err.toString())
+  //   }
+  // }))
 }
 
 const main = async () => { 
